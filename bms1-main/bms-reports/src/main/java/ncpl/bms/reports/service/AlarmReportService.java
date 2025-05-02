@@ -55,16 +55,38 @@ public class AlarmReportService {
             dto.setAlarmClass(rs.getLong("alarmClass"));
             dto.setNormalTime(rs.getLong("normalTime"));
             dto.setAckTime(rs.getLong("ackTime"));
-            dto.setMessageText("HUMIDITY NORMAL");
+            dto.setMessageText(extractMessageText(rs.getString("source")));
             return dto;
         });
     }
 
     private String extractSourceName(String fullSource) {
         if (fullSource == null) return "";
-        Pattern pattern = Pattern.compile("(AHU_[^/]+|TFA_[^/]+|MT001)", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("points/([^/]+)");
         Matcher matcher = pattern.matcher(fullSource);
-        return matcher.find() ? matcher.group() : fullSource;
+        return matcher.find() ? matcher.group(1) : "";
+    }
+
+    private String extractMessageText(String fullSource)    {
+        if (fullSource == null) return "";
+
+        int index = fullSource.indexOf("points/");
+        if (index == -1) return "";
+
+        String afterPoints = fullSource.substring(index + "points/".length());
+        String[] segments = afterPoints.split("/");
+
+        if (segments.length == 0) {
+            return "";
+        }
+
+        // If second last is HUMIDITY → return HUMIDITY + lastSegment
+        if (segments.length >= 2 && "HUMIDITY".equalsIgnoreCase(segments[segments.length - 2])) {
+            return segments[segments.length - 2] + segments[segments.length - 1];
+        }
+
+        // Else return only last segment
+        return segments[segments.length - 1];
     }
 
     private String formatEpoch(Long millis) {
@@ -325,7 +347,7 @@ public class AlarmReportService {
                 table.addCell(createCell(formatEpoch(log.getNormalTime()), cellFont));
                 table.addCell(createCell(log.getSource(), cellFont));
                 table.addCell(createCell(getAckClassLabel(log.getAckState()), cellFont));
-                table.addCell(createCell("HUMIDITY NORMAL", cellFont));
+                table.addCell(createCell(log.getMessageText(), cellFont)); // Corrected line
                 table.addCell(createCell(getAlarmClassLabel(log.getAlarmClass()), cellFont));
                 table.addCell(createCell(formatEpoch(log.getTimeOfLastAlarm()), cellFont));
             }

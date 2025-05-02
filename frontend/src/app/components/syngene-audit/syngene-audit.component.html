@@ -48,3 +48,15 @@
     </table>
   </div>
 </div>
+<!-- PDF Modal Viewer -->
+<div *ngIf="showPdfModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <button class="close-btn" (click)="closePdf()">Close</button>
+
+
+    </div>
+
+    <iframe [src]="pdfUrl" width="100%" height="500px" frameborder="0"></iframe>
+  </div>
+</div>

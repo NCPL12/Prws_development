@@ -28,7 +28,7 @@ export class AlarmReportComponent {
   ngOnInit() {
     this.fetchStoredReports(); // Load reports initially
   }
-
+  
   downloadAlarmReport() {
     this.errorMessage = '';
     const username = localStorage.getItem('username');
@@ -94,12 +94,12 @@ export class AlarmReportComponent {
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-        this.selectedReportId = id; // ✅ set selected report
+        this.selectedReportId = id;
         this.showPdfModal = true;
       },
       error: (err) => {
         console.error('Failed to load PDF', err);
-        alert('Failed to load the report PDF.');
+        alert('Failed to load the report. Please try again.');
       }
     });
   }

@@ -3,8 +3,13 @@
     <h1 class="about-heading">{{ aboutHeading }}</h1>
     <p class="about-description">{{ aboutDescription1 }}</p>
     <p class="about-description">{{ aboutDescription2 }}</p>
-    <p>
-      <a class="about-description" [href]="userGuideLinkUrl" target="_blank">{{ userGuideLinkText }}</a>
-    </p>
+    <a href="assets/PRWS_UserGuide.pdf" target="_blank" rel="noopener noreferrer">
+ 
+      <button (click)="showUserGuide()" class="user-guide-button">
+        {{ userGuideLinkText }}
+      </button>
+    </a>    
   </div>
+
 </div>
+
