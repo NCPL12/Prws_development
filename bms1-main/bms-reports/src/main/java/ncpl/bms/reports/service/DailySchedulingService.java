@@ -164,28 +164,35 @@ public class DailySchedulingService {
     }
 
     private double getFromValue(String paramName) {
-        if (paramName.contains("_From_")) {
-            int fromIndex = paramName.lastIndexOf("_From_") + 6;
-            int toIndex = paramName.lastIndexOf("_To_");
-            String fromStr = paramName.substring(fromIndex, toIndex);
-            return Double.parseDouble(fromStr);
+        try {
+            if (paramName.contains("_From_") && paramName.contains("_To_")) {
+                int fromIndex = paramName.lastIndexOf("_From_") + 6;
+                int toIndex = paramName.lastIndexOf("_To_");
+                String fromStr = paramName.substring(fromIndex, toIndex);
+                return Double.parseDouble(fromStr);
+            }
+        } catch (NumberFormatException e) {
+            log.warn("Invalid 'From' value in parameter: {}", paramName, e);
         }
-        return Double.NEGATIVE_INFINITY;  // Default if no "From" found
+        return Double.NEGATIVE_INFINITY;
     }
 
     private double getToValue(String paramName) {
-        if (paramName.contains("_To_")) {
-            int toIndex = paramName.lastIndexOf("_To_") + 4;
-            String toStr = paramName.substring(toIndex);
-            return Double.parseDouble(toStr);
+        try {
+            if (paramName.contains("_To_")) {
+                int toIndex = paramName.lastIndexOf("_To_") + 4;
+                int endIndex = paramName.indexOf("_", toIndex); // Stop at next underscore or end
+                String toStr = (endIndex == -1)
+                        ? paramName.substring(toIndex)
+                        : paramName.substring(toIndex, endIndex);
+
+                return Double.parseDouble(toStr);
+            }
+        } catch (NumberFormatException e) {
+            log.warn("Invalid 'To' value in parameter: {}", paramName, e);
         }
-        return Double.POSITIVE_INFINITY;  // Default if no "To" found
+        return Double.POSITIVE_INFINITY;
     }
-
-
-    //------------------Vishal (Code Added)
-
-
 
     private void addStatisticsRow(String label, Map<String, Map<String, Integer>> statistics, PdfPTable table) {
         PdfPCell labelCell = new PdfPCell(new Phrase(label));

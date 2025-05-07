@@ -34,6 +34,7 @@ public class AlarmReportService {
 
     public List<AlarmRecordDTO> fetchAlarmLogs(long startMillis, long endMillis) {
         String sql = "SELECT " +
+                "r.[timestamp],"+
                 "r.[ackState], " +
                 "r.[alarmClass], " +
                 "r.[normalTime], " +
@@ -49,6 +50,7 @@ public class AlarmReportService {
 
         return jdbcTemplate.query(sql, new Object[]{startMillis, endMillis}, (ResultSet rs, int rowNum) -> {
             AlarmRecordDTO dto = new AlarmRecordDTO();
+            dto.setTimestamp(rs.getLong("timestamp"));
             dto.setSource(extractSourceName(rs.getString("source")));
             dto.setTimeOfLastAlarm(rs.getLong("timeOfLastAlarm"));
             dto.setAckState(rs.getLong("ackState"));
@@ -194,7 +196,7 @@ public class AlarmReportService {
         table.setWidths(new float[]{5f, 5f, 3f, 5f, 3f, 5f});
         table.setHeaderRows(1);
 
-        String[] headers = {"Normal Time", "Source Name", "Ack State", "Message text", "Alarm Class", "Alarm Time"};
+        String[] headers = {"Timestamp","Source Name", "Ack State", "Message text", "Alarm Class", "Alarm Time"};
         for (String h : headers) {
             PdfPCell header = new PdfPCell(new Phrase(h, headerFont));
             header.setBackgroundColor(Color.LIGHT_GRAY);
@@ -344,7 +346,8 @@ public class AlarmReportService {
             PdfPTable table = createAlarmTable(headerFont);
 
             for (AlarmRecordDTO log : logs) {
-                table.addCell(createCell(formatEpoch(log.getNormalTime()), cellFont));
+                table.addCell(createCell(formatEpoch(log.getTimestamp()), cellFont));
+//                table.addCell(createCell(formatEpoch(log.getNormalTime()), cellFont));
                 table.addCell(createCell(log.getSource(), cellFont));
                 table.addCell(createCell(getAckClassLabel(log.getAckState()), cellFont));
                 table.addCell(createCell(log.getMessageText(), cellFont)); // Corrected line
