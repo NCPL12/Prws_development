@@ -136,7 +136,7 @@ public class SyngeneAuditReportService {
 
                         headerTable.addCell(logoCell);
 
-                        Paragraph titlePara = new Paragraph("S20 Building Audit Trail Report", titleFont);
+                        Paragraph titlePara = new Paragraph("S20A Building Audit Trail Report", titleFont);
                         titlePara.setAlignment(Element.ALIGN_CENTER);
 
                         PdfPCell titleCell = new PdfPCell();

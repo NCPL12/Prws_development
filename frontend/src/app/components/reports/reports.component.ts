@@ -91,16 +91,19 @@ export class ReportsComponent implements OnInit {
     }
     // Optionally add similar logic for weekly and monthly reports if necessary
 
-    this.http.get(apiUrl, { responseType: 'blob' }).subscribe(
-      blob => {
-        const url = window.URL.createObjectURL(blob);
-        this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-        this.showPdfModal = true;
-      },
-      error => {
-        console.error(`Error loading PDF for ${this.selectedReportType} report:`, error);
-      }
-    );
+    // this.http.get(apiUrl, { responseType: 'blob' }).subscribe(
+    //   blob => {
+    //     const url = window.URL.createObjectURL(blob);
+    //     this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    //     this.showPdfModal = true;
+    //   },
+    //   error => {
+    //     console.error(`Error loading PDF for ${this.selectedReportType} report:`, error);
+    //   }
+    // );
+    this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(apiUrl);
+this.showPdfModal = true;
+
   }
 
   closePdf() {

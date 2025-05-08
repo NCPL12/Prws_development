@@ -167,11 +167,22 @@ public class ReportsController {
         if (reportDTO == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
+        // Clean filename: remove "null_and_" if present
+        String filename = reportDTO.getName();
+        if (filename == null || filename.toLowerCase().startsWith("null")) {
+            filename = filename == null ? "Report.pdf" : filename.replaceFirst("null_and_", "");
+        }
+
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, "application/pdf");
-        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=report_" + id + ".pdf");
+
+        // This sets filename in browser viewer
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"");
+
         return new ResponseEntity<>(reportDTO.getPdfData(), headers, HttpStatus.OK);
     }
+
 
     // Approve Report
     @PutMapping("/reports/approve/{id}")

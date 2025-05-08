@@ -74,34 +74,65 @@
             String sql = "SELECT name FROM report_template WHERE id = ?";
             return jdbcTemplate.queryForObject(sql, new Object[]{templateId}, String.class);
         }
-
         public String getDynamicReportHeading(Long templateId) {
-            String sql = "SELECT ph.HeaderName " +
-                    "FROM report_template rt " +
-                    "JOIN ParameterHeaders ph ON rt.parameters LIKE CONCAT('%', ph.SetPointName, '%') " +
-                    "WHERE rt.id = ?";
+            log.info("🔍 Starting getDynamicReportHeading for templateId = {}", templateId);
 
             try {
-                List<String> headers = jdbcTemplate.queryForList(sql, new Object[]{templateId}, String.class);
+                ReportTemplate template = templateService.getById(templateId);
+                List<String> parameters = template.getParameters();
 
-                if (headers == null || headers.isEmpty()) {
-                    return "Report"; // Fallback if nothing matched
+                log.info("🧩 Raw Parameters: {}", parameters);
+                if (parameters == null || parameters.isEmpty()) {
+                    log.warn("⚠️ No parameters found in template {}", templateId);
+                    return "";
                 }
 
-                // Join with 'and' if multiple
-                if (headers.size() == 1) {
-                    return headers.get(0) + " Report";
+                // Extract base parameters
+                List<String> baseParams = parameters.stream()
+                        .map(this::extractBaseParameter)
+                        .distinct()
+                        .toList();
+
+                log.info("🧩 Base Parameter Names: {}", baseParams);
+
+                if (baseParams.isEmpty()) {
+                    return "";
+                }
+
+                String inSql = String.join(",", Collections.nCopies(baseParams.size(), "?"));
+                String sql = "SELECT DISTINCT HeaderName FROM ParameterHeaders WHERE SetPointName IN (" + inSql + ")";
+                log.info("🟡 Executing header fetch SQL: {}", sql);
+
+                List<String> headers = jdbcTemplate.queryForList(sql, baseParams.toArray(), String.class);
+                List<String> uniqueHeaders = headers.stream()
+                        .filter(Objects::nonNull)
+                        .filter(h -> !h.trim().equalsIgnoreCase("null"))
+                        .map(String::trim)
+                        .distinct()
+                        .toList();
+
+                log.info("✅ Unique Headers fetched: {}", uniqueHeaders);
+
+                if (uniqueHeaders.isEmpty()) {
+                    return "";
+                } else if (uniqueHeaders.size() == 1) {
+                    return uniqueHeaders.get(0) + " Report";
                 } else {
-                    String joined = String.join(", ", headers.subList(0, headers.size() - 1)) +
-                            " and " + headers.get(headers.size() - 1);
+                    String joined = String.join(", ", uniqueHeaders.subList(0, uniqueHeaders.size() - 1)) +
+                            " and " + uniqueHeaders.get(uniqueHeaders.size() - 1);
                     return joined + " Report";
                 }
 
             } catch (Exception e) {
-                log.warn("Error generating dynamic report heading, using fallback.", e);
-                return "Report";
+                log.error("❌ Error in getDynamicReportHeading for templateId = {}", templateId, e);
+                return "";
             }
-        }private void addColorLegend(Document document) throws DocumentException {
+        }
+
+        // This method should already exist in your service
+
+
+        private void addColorLegend(Document document) throws DocumentException {
             PdfPTable legendTable = new PdfPTable(2);
             legendTable.setWidthPercentage(30f);
             legendTable.setSpacingBefore(10);
@@ -313,8 +344,9 @@
     // ✅ NOW close the document
             document.close();
 
-            String templateName = templateService.getById(templateId).getName().replaceAll("[^a-zA-Z0-9]", "_"); // Replace non-alphanumeric characters with underscores
-            String pdfFileName = templateName + "_" + formattedFromDateTime + "_TO_" + formattedToDateTime + ".pdf";
+            String dynamicHeading = getDynamicReportHeading(templateId);
+            String cleanHeading = dynamicHeading.replaceAll("[^a-zA-Z0-9]", "_");
+            String pdfFileName = cleanHeading + ".pdf";
             Date currentDate = new Date(Calendar.getInstance().getTimeInMillis());
             long currentTimeMillis = currentDate.getTime();
             String currentDateStr = Long.toString(currentTimeMillis);
