@@ -90,18 +90,21 @@ export class AlarmReportComponent {
   
   viewStoredReport(id: number) {
     const viewUrl = `${this.apiBaseUrl}/alarm-report/view/${id}`;
-    this.http.get(viewUrl, { responseType: 'blob' }).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-        this.selectedReportId = id;
-        this.showPdfModal = true;
-      },
-      error: (err) => {
-        console.error('Failed to load PDF', err);
-        alert('Failed to load the report. Please try again.');
-      }
-    });
+    // this.http.get(viewUrl, { responseType: 'blob' }).subscribe({
+    //   next: (blob) => {
+    //     const url = window.URL.createObjectURL(blob);
+    //     this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    //     this.selectedReportId = id;
+    //     this.showPdfModal = true;
+    //   },
+    //   error: (err) => {
+    //     console.error('Failed to load PDF', err);
+    //     alert('Failed to load the report. Please try again.');
+    //   }
+    // });
+    this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewUrl);
+    this.showPdfModal = true;
+    this.selectedReportId = id; 
   }
   reviewReport(reportId: number | null) {
     if (reportId === null) {
